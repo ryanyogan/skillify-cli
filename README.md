@@ -77,6 +77,61 @@ npx -y --allow-git=root github:ryanyogan/skillify-cli status --check
 Exits with 1 when any skill is behind, missing, edited or no longer assigned. Set `SKILLIFY_TOKEN`
 (a read token is enough).
 
+## Automatic pull requests
+
+This repository is also a GitHub Action. It runs `skillify sync` in your repository's own CI and
+opens one pull request when Skillify has new or changed skills. The push and the pull request use
+your workflow's own token: Skillify itself never gets write access to GitHub.
+
+1. In Skillify, create a personal token (Settings → API tokens). A read token is enough.
+2. Add it to the repository as a secret named `SKILLIFY_TOKEN` (Settings → Secrets and variables → Actions).
+3. Allow workflows to open pull requests: Settings → Actions → General → Workflow permissions →
+   "Allow GitHub Actions to create and approve pull requests". In an organization, the organization
+   may need to allow it first.
+4. Commit `.github/workflows/skillify.yml`:
+
+```yaml
+name: Skillify
+on:
+  schedule: [{ cron: '0 7 * * 1-5' }]
+  workflow_dispatch: {}
+permissions: { contents: write, pull-requests: write }
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ryanyogan/skillify-cli@v0
+        with: { token: '${{ secrets.SKILLIFY_TOKEN }}' }
+```
+
+Each run starts the `skillify/sync` branch from your default branch, syncs, and when anything
+changed commits as `github-actions[bot]`, force-pushes the branch and opens the pull request (or
+updates the one already open). The body lists the skills added, updated and removed with their
+versions, skills edited in the repository that were kept, and any old `.skillify/` cleanup. When
+nothing changed, the job summary says the skills are up to date. Hand-edited skills are never
+overwritten.
+
+The sync is reported to Skillify as the token's owner, so it shows under that person's name in the
+repository's activity.
+
+Pull requests opened with the workflow's `GITHUB_TOKEN` don't start your other workflows
+straight away: GitHub holds their checks until someone with write access selects "Approve workflows
+to run" on the pull request. To have checks start on their own, pass a GitHub App installation token
+or a fine-grained personal token (Contents and Pull requests: read and write) as `github-token`.
+
+| Input | Default | |
+| --- | --- | --- |
+| `token` | (required) | Skillify personal token |
+| `server` | `https://skillify.yogan.dev` | Skillify server |
+| `branch` | `skillify/sync` | Branch the pull request comes from; reset on every run |
+| `title` | `Update agent skills` | Pull request title and commit message |
+| `base` | the checked-out branch | Branch to sync and target |
+| `github-token` | `${{ github.token }}` | Token for the push and the pull request |
+
+Outputs: `changed` (`true` or `false`) and `pull-request-url`. The Action needs `git` and Node.js 20 or
+newer, both preinstalled on GitHub-hosted runners.
+
 ## Usage hooks
 
 After you sign in, `skillify login` offers to add a small usage hook to the agents it finds on this

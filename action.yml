@@ -1,0 +1,67 @@
+# Skillify sync pull requests: runs `skillify sync` in this repository's own CI and opens (or updates)
+# one pull request with the result. Skillify itself never gets write access to GitHub: the push and
+# the pull request use this workflow's token.
+#
+#   permissions: { contents: write, pull-requests: write }
+#   steps:
+#     - uses: actions/checkout@v4
+#     - uses: ryanyogan/skillify-cli@v0
+#       with: { token: '${{ secrets.SKILLIFY_TOKEN }}' }
+#
+# Every input reaches the script as an environment variable, never interpolated into the shell.
+name: Skillify sync
+description: Open a pull request when Skillify has new or changed agent skills for this repository.
+author: Skillify
+branding:
+  icon: git-pull-request
+  color: purple
+
+inputs:
+  token:
+    description: A Skillify personal token (Skillify → Settings → API tokens). Read access is enough. Store it as a secret.
+    required: true
+  server:
+    description: The Skillify server.
+    required: false
+    default: https://skillify.yogan.dev
+  branch:
+    description: The branch the pull request is opened from. It is reset on every run.
+    required: false
+    default: skillify/sync
+  title:
+    description: Pull request title and commit message.
+    required: false
+    default: Update agent skills
+  base:
+    description: The branch to sync and open the pull request against. Defaults to the checked-out branch, else the repository's default branch.
+    required: false
+    default: ''
+  github-token:
+    description: Token for the push and the pull request. Defaults to the workflow's GITHUB_TOKEN; pass a GitHub App or personal token to have checks run on the pull request without approval.
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  changed:
+    description: '"true" when skills changed and a pull request was opened or updated, else "false".'
+    value: ${{ steps.sync.outputs.changed }}
+  pull-request-url:
+    description: The pull request opened or updated by this run (or an older one still open when nothing changed).
+    value: ${{ steps.sync.outputs.pull-request-url }}
+
+runs:
+  using: composite
+  steps:
+    - id: sync
+      name: Sync skills and open a pull request
+      shell: bash
+      env:
+        SKILLIFY_TOKEN: ${{ inputs.token }}
+        SKILLIFY_SERVER: ${{ inputs.server }}
+        SKILLIFY_BRANCH: ${{ inputs.branch }}
+        SKILLIFY_TITLE: ${{ inputs.title }}
+        SKILLIFY_BASE: ${{ inputs.base }}
+        SKILLIFY_CLI: ${{ github.action_path }}/skillify.mjs
+        SKILLIFY_DEFAULT_GITHUB_TOKEN: ${{ inputs.github-token == github.token }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: node "$GITHUB_ACTION_PATH/action/pr.mjs"

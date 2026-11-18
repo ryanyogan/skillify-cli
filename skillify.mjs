@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// skillify CLI 0.7.1. Generated from apps/cli; do not edit. Install: npm install -g --allow-git=root github:ryanyogan/skillify-cli
+// skillify CLI 0.8.0. Generated from apps/cli; do not edit. Install: npm install -g --allow-git=root github:ryanyogan/skillify-cli
 var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __esm = (fn, res) => function() {
@@ -125,6 +125,14 @@ var decoder, init_tar = __esm({
   }
 });
 
+// ../../packages/core/src/github-app.ts
+var encoder2, init_github_app = __esm({
+  "../../packages/core/src/github-app.ts"() {
+    "use strict";
+    encoder2 = new TextEncoder();
+  }
+});
+
 // ../../packages/core/src/github.ts
 var init_github = __esm({
   "../../packages/core/src/github.ts"() {
@@ -160,6 +168,7 @@ var init_src = __esm({
     init_render();
     init_tar();
     init_github();
+    init_github_app();
     init_diff();
     init_totp();
   }
@@ -220,7 +229,7 @@ var VERSION, DEFAULT_SERVER, SHORT, BOOLEAN_FLAGS, CLI, init_args = __esm({
   "src/args.ts"() {
     "use strict";
     init_errors();
-    VERSION = "0.7.1", DEFAULT_SERVER = "https://skillify.yogan.dev", SHORT = { "-h": "--help", "-q": "--quiet", "-y": "--yes", "-v": "--version" }, BOOLEAN_FLAGS = [
+    VERSION = "0.8.0", DEFAULT_SERVER = "https://skillify.yogan.dev", SHORT = { "-h": "--help", "-q": "--quiet", "-y": "--yes", "-v": "--version" }, BOOLEAN_FLAGS = [
       "help",
       "version",
       "json",
@@ -1711,6 +1720,36 @@ var fetchBundle, init_remote = __esm({
   }
 });
 
+// src/sync-result.ts
+function syncResult(plan, server, options) {
+  let { legacy } = plan, result = {
+    repo: plan.repo,
+    server,
+    cliVersion: VERSION,
+    dryRun: options.dryRun,
+    applied: options.applied,
+    skills: plan.skills,
+    files: {
+      agentsMd: plan.agentsMd !== void 0,
+      claudeMd: plan.claudeMd !== void 0,
+      legacyDir: legacy.dir,
+      legacySettings: legacy.settings === void 0 ? null : legacy.settings === null ? "removed" : "updated",
+      legacyProblem: legacy.settingsProblem ?? null
+    },
+    paths: changedPaths(plan),
+    skipped: plan.skipped,
+    commit: options.commit
+  };
+  return options.applied && Object.assign(result, { failed: options.failed ?? [], reported: !!options.reported }), result;
+}
+var init_sync_result = __esm({
+  "src/sync-result.ts"() {
+    "use strict";
+    init_args();
+    init_plan();
+  }
+});
+
 // src/commands/hooks.ts
 function pick(flags) {
   let wanted = str(flags, "agent");
@@ -2049,7 +2088,7 @@ async function runSync(target, flags, command) {
   events.emit("step", { step: "bundle", message: `Fetched ${plural(bundle.skills.length, "skill")}`, progress: { done: 0, total: bundle.skills.length } }), hasLegacy(plan.legacy) && !term().json && info(["This repository was set up by an older Skillify CLI.", dim(`Sync removes .skillify/ and its hook: usage is now counted by hooks in your own agents (${CLI} hooks).`)]);
   let changes = hasChanges(plan), commit = commitCommand(plan);
   if (dryRun || !changes) {
-    if (term().json) return json({ repo: plan.repo, server, dryRun, applied: !1, skills: plan.skills, commit });
+    if (term().json) return json(syncResult(plan, server, { dryRun, applied: !1, commit }));
     if (printPlan(plan, dryRun ? "preview" : "status", { verbose: !!flags.verbose }), events.emit("done", { message: dryRun ? "Dry run" : "Up to date" }), dryRun) return outro(changes ? `Dry run: nothing was written. Run ${cyan(`${CLI} ${command === "init" ? `init ${repo}` : "sync"}`)} to apply.` : "Dry run: nothing to change");
     let kept = count(plan).kept;
     return outro(kept ? `Nothing to write; kept ${plural(kept, "skill")} edited here` : `${bold(plan.repo)} is up to date`);
@@ -2083,7 +2122,7 @@ async function runSync(target, flags, command) {
     },
     { done: (ok) => ok ? "Reported this checkout to Skillify" : "Couldn't report to Skillify; the dashboard catches up next time", outcome: (ok) => ok ? "ok" : "warn", timing: !1 }
   );
-  if (events.emit("step", { step: "report", message: reported ? "Reported to Skillify" : "Couldn't report", warning: !reported }), events.emit("done", { message: "Synced" }), term().json) return json({ repo: plan.repo, server, dryRun, applied: !0, skills: plan.skills, failed, reported, commit });
+  if (events.emit("step", { step: "report", message: reported ? "Reported to Skillify" : "Couldn't report", warning: !reported }), events.emit("done", { message: "Synced" }), term().json) return json(syncResult(plan, server, { dryRun, applied: !0, commit, failed, reported }));
   commit && note("Next", ["Review the changes, then commit them so everyone gets the same skills:", "", cyan(commit)]), outro(`Synced ${bold(plan.repo)} in ${duration(Date.now() - target.started)}`);
 }
 async function sync(args) {
@@ -2142,6 +2181,7 @@ var json, init_sync = __esm({
     init_present();
     init_remote();
     init_skills();
+    init_sync_result();
     init_ui();
     init_common();
     init_hooks();
