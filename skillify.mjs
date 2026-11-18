@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// skillify CLI 0.7.0. Generated from apps/cli; do not edit. Install: npm install -g github:ryanyogan/skillify-cli
+// skillify CLI 0.7.1. Generated from apps/cli; do not edit. Install: npm install -g --allow-git=root github:ryanyogan/skillify-cli
 var __defProp = Object.defineProperty;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __esm = (fn, res) => function() {
@@ -220,7 +220,7 @@ var VERSION, DEFAULT_SERVER, SHORT, BOOLEAN_FLAGS, CLI, init_args = __esm({
   "src/args.ts"() {
     "use strict";
     init_errors();
-    VERSION = "0.7.0", DEFAULT_SERVER = "https://skillify.yogan.dev", SHORT = { "-h": "--help", "-q": "--quiet", "-y": "--yes", "-v": "--version" }, BOOLEAN_FLAGS = [
+    VERSION = "0.7.1", DEFAULT_SERVER = "https://skillify.yogan.dev", SHORT = { "-h": "--help", "-q": "--quiet", "-y": "--yes", "-v": "--version" }, BOOLEAN_FLAGS = [
       "help",
       "version",
       "json",
@@ -1735,7 +1735,7 @@ function reportInstalled(results) {
   for (let r of results)
     r.state === "installed" ? success(`${r.agent.label} ${dim(tildify(r.file))}`) : r.state === "invalid" && warn([`Left ${r.agent.label} alone: ${tildify(r.file)} ${r.problem}.`, dim("Fix the file, then run skillify hooks --install.")]);
   for (let r of results) r.state === "installed" && r.agent.note && info(r.agent.note);
-  results.some((r) => r.state === "installed") && !onPath() && warn(["skillify isn't on your PATH, so agents can't run the hook.", dim("Install it globally: npm install -g github:ryanyogan/skillify-cli")]);
+  results.some((r) => r.state === "installed") && !onPath() && warn(["skillify isn't on your PATH, so agents can't run the hook.", dim("Install it globally: npm install -g --allow-git=root github:ryanyogan/skillify-cli")]);
 }
 function installAll(agents = AGENTS) {
   return agents.map((agent) => installHook(agent));
@@ -2174,7 +2174,7 @@ async function doctor(args) {
     let missing = found.filter((s) => s.state !== "installed");
     add("warn", `No usage hook in ${missing.map((s) => s.agent.label).join(", ")}`, missing.some((s) => s.state === "invalid") ? `Fix ${missing.filter((s) => s.state === "invalid").map((s) => tildify(s.file)).join(", ")}, then run ${cli} hooks --install.` : `Run ${cli} hooks --install.`);
   }
-  hooked.length && !onPath() && add("warn", "skillify is not on your PATH, so agents can't run the hook", "Install it globally: npm install -g github:ryanyogan/skillify-cli");
+  hooked.length && !onPath() && add("warn", "skillify is not on your PATH, so agents can't run the hook", "Install it globally: npm install -g --allow-git=root github:ryanyogan/skillify-cli");
   let health = await task(`Reaching ${server}`, () => api(server, "/api/v1/health", { timeoutMs: 8e3 }), {
     done: `Server ${server} ${dim(SOURCE[source])}`,
     failed: `Can't reach ${server}`,

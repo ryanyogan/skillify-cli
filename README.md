@@ -9,7 +9,7 @@ Full documentation: https://skillify.yogan.dev/docs/cli
 ## Install
 
 ```sh
-npm install -g github:ryanyogan/skillify-cli
+npm install -g --allow-git=root github:ryanyogan/skillify-cli
 skillify --version
 ```
 
@@ -71,7 +71,7 @@ Actions without a remote, `GITHUB_REPOSITORY` is used.
 ## Check in CI
 
 ```sh
-npx -y github:ryanyogan/skillify-cli status --check
+npx -y --allow-git=root github:ryanyogan/skillify-cli status --check
 ```
 
 Exits with 1 when any skill is behind, missing, edited or no longer assigned. Set `SKILLIFY_TOKEN`

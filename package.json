@@ -1,6 +1,6 @@
 {
   "name": "@skillify/cli",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "The skillify command: sets up, syncs and checks a repository's agent skills from Skillify.",
   "type": "module",
   "bin": {
