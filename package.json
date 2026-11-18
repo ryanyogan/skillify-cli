@@ -1,0 +1,31 @@
+{
+  "name": "@skillify/cli",
+  "version": "0.7.0",
+  "description": "The skillify command: sets up, syncs and checks a repository's agent skills from Skillify.",
+  "type": "module",
+  "bin": {
+    "skillify": "skillify.mjs"
+  },
+  "files": [
+    "skillify.mjs",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryanyogan/skillify-cli.git"
+  },
+  "homepage": "https://skillify.yogan.dev/docs/cli",
+  "keywords": [
+    "skillify",
+    "agent-skills",
+    "claude-code",
+    "codex",
+    "agents-md",
+    "cli"
+  ]
+}
